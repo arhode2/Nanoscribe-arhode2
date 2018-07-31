@@ -1,5 +1,5 @@
-function generateScript_CylindricalTaper()
-filename = 'CylindricalTaper.gwl';
+function generateScript_CylindricalTaperZ()
+filename = 'CylindricalTaperZ.gwl';
 fid = fopen(filename,'w');
 
 %NEED BEGINNING/STANDARD PARAMETERS
@@ -38,8 +38,9 @@ xMin = 0;
 zMin = -rThick;
 zMax = rThick;
 
-xOffsetCyl = lPart;
-xOffsetEnd = 2 * lPart;
+vertOffset = 0;
+xOffsetBeg = -lTotal / 2;
+xOffsetEnd = lPart / 2;
 
 
 %Write the whole fucking waveguide
@@ -47,15 +48,15 @@ for z = zMin : spacing : zMax
     y0 = -sqrt(rThick^2 - z^2);
     yf = sqrt(rThick^2 - z^2);
     for y = y0 : spacing : yf
-        if sqrt(y^2 + z^2 > rThin^2)
+        if sqrt(y^2 + z^2) > rThin^2
             %Write the frustrums
             xfa = -(lPart / (rThick - rThin)) * (sqrt(z^2 + y^2) - (rThick));
-            if xf > lPart
-                xf = lPart;
+            if xfa > lPart
+                xfa = lPart;
             end
             %Initial Taper
-            fprintf(fid, '%f %f %f %f \r\n', xMin, y, z + vertOffset, lp);
-            fprintf(fid, '%f %f %f %f \r\n', xfa, y, z + vertOffset, lp);
+            fprintf(fid, '%f %f %f %f \r\n', xMin + xOffsetBeg, y, z + vertOffset, lp);
+            fprintf(fid, '%f %f %f %f \r\n', xfa + xOffsetBeg, y, z + vertOffset, lp);
             fprintf(fid, 'write \r\n \r\n');
         
             %Ending taper
@@ -65,8 +66,8 @@ for z = zMin : spacing : zMax
             fprintf(fid, 'write \r\n \r\n');
         else
             %Write the cylinder extended through the frustrums
-            fprintf(fid, '%f %f %f %f \r\n', xMin, y, z + vertOffset, lp);
-            fprintf(fid, '%f %f %f %f \r\n', lPart + xOffsetCyl, y, z + vertOffset, lp);
+            fprintf(fid, '%f %f %f %f \r\n', xMin + xOffsetBeg, y, z + vertOffset, lp);
+            fprintf(fid, '%f %f %f %f \r\n', lTotal + xOffsetBeg, y, z + vertOffset, lp);
             fprintf(fid, 'write \r\n \r\n');
         end
     end
