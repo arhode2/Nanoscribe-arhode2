@@ -40,7 +40,7 @@ xMin = 0;
 zMin = -rThick;
 zMax = rThick;
 
-%Make the initial fulcrum
+%Make the initial frustrum
 for z = zMin : spacing : zMax
     y0 = -sqrt(rThick^2 - z^2);
     yf = sqrt(rThick^2 - z^2);
@@ -54,6 +54,32 @@ for z = zMin : spacing : zMax
         fprintf(fid, 'write \r\n \r\n');                                                                                                                                    
     end
 end
+
+%Make the cylinder
+xOffset = lPart;
+for z = zMin + (rThick - rThin) : spacing : zMin + rThick + rThin
+    y0 = -sqrt(rThin^2 - z^2);
+    yf = sqrt(rThin^2 - x^2);
+    for y0 : spacing : yf
+        fprintf(fid, '%f %f %f %f \r\n', xOffset, y, z + vertOffset, lp);
+        fprintf(fid, '%f %f %f %f \r\n', lPart + xOffset, y, z + vertOffset, lp);
+        fprintf(fid, 'write \r\n \r\n');
+    end
+end
+
+%Make the ending frustrum
+xOffset = 2 * lPart;
+for z = zMin : spacing : zMax
+    y0 = -sqrt(rThick^2 - z^2);
+    yf = sqrt(rThick^2 - z^2);
+    for y = y0 : spacing : yf
+        x0 = (lPart / (rThick - rThin)) * (sqrt(z^2 + y^2) - rThin);
+        fprintf(fid, '%f %f %f %f \r\n', x0 + xOffset, y, z + vertOffset, lp);
+        fprintf(fid, '%f %f %f %f \r\n', lPart + xOffset, y, z + vertOffset, lp);
+        fprintf(fid, 'write \r\n \r\n');
+    end
+end
+
 closed = fclose(fid);
 close = fclose('all');
 end
