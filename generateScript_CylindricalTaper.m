@@ -59,8 +59,8 @@ end
 xOffset = lPart;
 for z = zMin + (rThick - rThin) : spacing : zMin + rThick + rThin
     y0 = -sqrt(rThin^2 - z^2);
-    yf = sqrt(rThin^2 - x^2);
-    for y0 : spacing : yf
+    yf = sqrt(rThin^2 - z^2);
+    for y = y0 : spacing : yf
         fprintf(fid, '%f %f %f %f \r\n', xOffset, y, z + vertOffset, lp);
         fprintf(fid, '%f %f %f %f \r\n', lPart + xOffset, y, z + vertOffset, lp);
         fprintf(fid, 'write \r\n \r\n');
