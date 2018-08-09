@@ -63,7 +63,7 @@ fclose('all');
         pointsTrim = points(2 : rows, 1 : columns);
         %trimSize = size(pointsTrim);
         %now trimSize has exactly all of the points for an eigth of a torus.
-        pointsSorted = sortrows(pointsTrim, 3);
+        pointsSorted = sortrows(pointsTrim, [3 2]);
     end
 end
 
