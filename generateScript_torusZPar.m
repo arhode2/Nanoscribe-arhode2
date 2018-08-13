@@ -1,4 +1,4 @@
-function generateScript_torusZ(r, R)
+function generateScript_torusZPar(r, R)
 %r = radius of the tube.
 %R = distance from center of torus to center of tube.
 
@@ -54,10 +54,23 @@ fclose('all');
         points = nan(1, 3);
         du = spacing / R;
         dv = spacing / r;
-        %u is like what phi is in spherical, but u=0 is on the x axis
+        %u is like what phi is in spherical. u = 0 is on the y-axis.
         %v is like theta in cylindrical, but centered at the center of the
         %tube for each given u.
-        for u = 0 : du : pi / 2
+        %
+        
+        %u determines the quadrant of the yz coordinate plane that the
+        %point will be in.
+        %QUADRANTS OF YZ-PLANE AS DETERMINED BY u.
+        %0 < u < pi / 2 : first (top right)
+        %pi / 2 < u < pi : fourth (bottom right)
+        %pi < u < 3pi / 2 : third (bottom left)
+        %3pi / 2 < u < 2pi : second (top left)
+        
+        %0 < v < pi restricts you to the positive side of the yz plane(we write
+        %from that point to the other side.
+        %
+        for u = 0 : du : (2 * pi)
             for v = 0 : dv : pi
                 x = r * sin(v);
                 y = (R + (r * cos(v))) * sin(u); 
