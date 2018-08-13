@@ -31,7 +31,7 @@ fprintf(fid,'TextPositionZ 2\r\n');
 
 
 spacing = 0.05;
-h = 5;
+h = 5; %h and w given in crypto lens parameters.
 w = 17;
 d = 5; %arbitrary for now, not sure what this is supposed to be.
 lp = 0;
@@ -50,12 +50,16 @@ n_pSiJ400_6_29_18 = [1.4263,1.472,1.536,1.645,1.675,1.71,1.863,1.945,1.95,1.96,1
 lp0 = interp1(n_pSiJ400_6_29_18, power_pSiJ400_6_29_18, nBlue); %currently not used. Blue is just background.
 lp1 = interp1(n_pSiJ400_6_29_18, power_pSiJ400_6_29_18, nRed);
 
-%Looping weirdness is due to canvas coordinates weirdness.
+colorError = 10; %amount over or under true red an RGB value can be to still be written.
+
+%Looping weirdness is due to canvas coordinates weirdness. (0,0) is in the
+%top left corner. Y increases from left to right. Z increases from top to
+%bottom.
 for i = hPix : -1 : 1
     z = (hPix - i) * spacing;
     for j = 1 : 1 : wPix
         y = (j - 1) * spacing;
-        if img(i, j, :) == triple
+        if ((triple(1) - colorError) < img(i, j, 1) && img(i, j, 1) < (triple(1) + colorError)) && ((triple(2) - colorError) < img(i, j, 2) && img(i, j, 2) < (triple(2) + colorError)) && ((triple(3) - colorError) < img(i, j, 3) && img(i, j, 3) < (triple(3) + colorError))
             fprintf(fid, '%f %f %f %f \r\n', 0, y, z, lp1);
             fprintf(fid, '%f %f %f %f \r\n', d, y, z, lp1);
             fprintf(fid, 'write \r\n \r\n');
