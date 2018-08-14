@@ -62,7 +62,7 @@ end
 %first upward curve
 yOffset = -R;
 zOffset = -(L / 2);
-torusPoints(pi / 2, pi);
+torusPoints(0, (R + r), -(R + r), 0);
 pointsSortedSize = size(pointsSorted);
 torusPart();
 
@@ -83,7 +83,7 @@ end
 %Curve from upward to forward
 zOffset = (L / 2);
 yOffset = R;
-torusPoints((3 * pi) / 2, 2 * pi);
+torusPoints(-(R + r), 0, 0, (R + r));
 pointsSortedSize = size(pointsSorted);
 torusPart();
 
@@ -105,32 +105,24 @@ close = fclose('all');
 
 
 %Helper functions.
-    function torusPoints(uMin, uMax)
-        %generates the points for the surface of the torus located in the
-        %first octant (eigth of the torus overall) using parametric
-        %equations for a torus.
-        points = nan(1, 3);
-        du = spacing / R;
-        dv = spacing / r;
-        %u is like what phi is in spherical, but u=0 is on the x axis
-        %v is like theta in cylindrical, but centered at the center of the
-        %tube for each given u.
-        for u = uMin : du : uMax
-            for v = 0 : dv : pi
-                x = r * sin(v);
-                y = (R + (r * cos(v))) * sin(u);
-                z = (R + (r * cos(v))) * cos(u);
+    function torusPoints(yMin, yMax, zMin, zMax)
+        realPoints = nan(1, 3);
+        for z = zMin : spacing : zMax
+            for y = yMin : spacing : yMax
+                x = sqrt(r^2 - (R - sqrt(y^2 + z^2))^2);
                 point = [x y z];
-                points = [points;point];
+                if imag(point(1)) == 0 && imag(point(2)) == 0 && imag(point(3)) == 0
+                    realPoints = [realPoints;point];
+                end
             end
         end
-        sizeVector = size(points);
-        rows = sizeVector(1);
-        columns = sizeVector(2);
-        pointsTrim = points(2 : rows, 1 : columns); %cut out first row of nans.
+        
+        sizeVector = size(realPoints);
+        realPoints = realPoints(2:sizeVector(1), 1:sizeVector(2));
         %now trimSize has exactly all of the points for an eigth of a torus.
-        pointsSorted = sortrows(pointsTrim, [3 2]);
+        pointsSorted = sortrows(realPoints, [3 2]);
     end
+
     function torusPart()
         pointsSortedSize = size(pointsSorted);
         for i = 1 : 1 : pointsSortedSize(1)
@@ -146,5 +138,5 @@ close = fclose('all');
             fprintf(fid, 'write \r\n \r\n');
         end
     end
-        
 end
+        
