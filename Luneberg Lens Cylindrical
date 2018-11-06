@@ -1,5 +1,5 @@
-function generateScript_LunebergCylindrical
-filename = 'Luneberg_Cylinder1.gwl';
+function generateScript_LunebergCylindricalA
+filename = 'Luneburg_Cylinder_Blue.gwl';
 fid = fopen(filename,'w')
 
 %NEED BEGINNING/STANDARD PARAMETERS
@@ -18,14 +18,36 @@ fprintf(fid,'TextFontSize 10\r\n');
 fprintf(fid,'TextPositionX -60\r\n');
 fprintf(fid,'TextPositionY 15\r\n');
 fprintf(fid,'TextPositionZ 2\r\n');
-fprintf(fid,'WriteText "Written: 4-7-18"\r\n');
+%fprintf(fid,'WriteText "Written: 11-6-18"\r\n');
 
 fprintf(fid,'FindInterfaceAt 20\r\n\r\n');
-power_pSiJ350_2um_8_30_17 = [0,12,16,20,28,32,36,40];
-n_pSiJ350_2um_8_30_17 = [1.2329,1.2918,1.3349,1.3929,1.4139,1.4371,1.4632,1.4635];
+%{
 
-nMin = 1.2329;
-nMax = 1.4635;
+power_pSi_red_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45];
+n_pSi_red_11_06_18 = [1.397, 1.56634941308763, 1.611023, 1.71808702777778, 1.78968696801927, 1.81239064742194, 1.84430296363831, 1.86946775856018];
+
+power_pSi_green_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
+n_pSi_green_11_06_18 = [1.43, 1.59344971308594, 1.69143365, 1.81391895853271, 1.84121217718124, 1.87182605, 1.85827992773056, 1.87648817129745];
+
+power_pSi_blue_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
+n_pSi_blue_11_06_18 = [1.473, 1.633075, 1.746184, 1.836386, 1.872362, 1.893499, 1.888746, 1.9453375, 1.942789];
+
+power_pSiOxide_red_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_red_11_06_18 = [1.1372, 1.42547673898563, 1.62793815507257, 1.70515192478027, 1.7451611328125, 1.84207870178223, 1.8214272875];
+
+power_pSiOxide_green_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_green_11_06_18 = [1.1379, 1.4987684375, 1.63972100549769, 1.74415230407715, 1.74196637037037, 1.7779875, 1.8363219375];
+
+power_pSiOxide_blue_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_blue_11_06_18 = [1.1388, 1.49646438461411, 1.66208066516168, 1.81183155119489, 1.86834652493527, 1.86834652493527, 1.87511646455702];
+
+%}
+
+power_pSi_blue_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
+n_pSi_blue_11_06_18 = [1.473, 1.633075, 1.746184, 1.836386, 1.872362, 1.893499, 1.888746, 1.9453375, 1.942789];
+n = 1.9;
+nMin = 1.473;
+nMax = 1.942789;
 
 R_ideal = 10;  %radius for a perfect Luneburg
 R_limit = sqrt(2-(nMin*sqrt(2)/nMax)^2) * R_ideal;
@@ -62,8 +84,8 @@ for currZ = minZ:spacing:maxZ %Cycle through each plane in z
            basePosXY = [currX;currY];
            rotPosXY = rotateAroundZ(curr_angle,basePosXY);
            currR = abs(sqrt((currX^2 + currY^2)));
-           sphere_n_local = sqrt( 2 - (currR/R_ideal)^2) * nMax/sqrt(2);
-           powers_n_local = interp1(n_pSiJ350_2um_8_30_17, power_pSiJ350_2um_8_30_17, sphere_n_local);
+           sphere_n_local = sqrt(2 - (currR/R_ideal)^2) * nMax/sqrt(2);
+           powers_n_local = interp1(n_pSi_blue_11_06_18, power_pSi_blue_11_06_18, sphere_n_local);
            currPower = powers_n_local;
            fprintf(fid, '%f %f %f %f \r\n', rotPosXY(1), rotPosXY(2), currZ + vertOffset, currPower );
            
