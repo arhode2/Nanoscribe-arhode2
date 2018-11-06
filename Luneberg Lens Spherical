@@ -1,61 +1,121 @@
-function generateScript_LunebergLensSpherical
+function generateScript_LunebergSphere1A()
+%Generate script for writing Spherical lens:
 
-%arhode2 - Base code shamelessly stolen from the great tjgarci2.
-%arhode2 - My comments are prefaced with my netID, Tanner's are un-modified.
-%arhode2 - Original file wrote a spherical lens, I am editing it to add GRIN.
+%dir = 'D:\danielbaconbrown\Porous Si\'
+%arhode2 - For red or green just substitute in the appropriate index data
+%and rerun the program.
+filename = 'Luneberg_Sphere_BlueA.gwl';
+fid = fopen(filename,'w')
 
-filename = 'LunebergSpherical.gwl';
-fid = fopen(filename,'w');
 %NEED BEGINNING/STANDARD PARAMETERS
 fprintf(fid,'TextFontSize 5\r\n');
+
 fprintf(fid,'ContinuousMode\r\n');
 fprintf(fid,'PowerScaling 1.0\r\n');
 fprintf(fid,'GalvoScanMode\r\n');
 fprintf(fid,'ScanSpeed 40000\r\n');
+
 fprintf(fid,'StageGotoX 0\r\n');
 fprintf(fid,'StageGotoY 0\r\n');
+
 fprintf(fid,'FindInterfaceAt 0.5\r\n');
 fprintf(fid,'TextFontSize 10\r\n');
 fprintf(fid,'TextPositionX -60\r\n');
 fprintf(fid,'TextPositionY 15\r\n');
 fprintf(fid,'TextPositionZ 2\r\n');
-fprintf(fid,'WriteText "Written:6-19-18 "\r\n');
+%fprintf(fid,'WriteText "Written: 7-19-17"\r\n');
+
 fprintf(fid,'FindInterfaceAt 20\r\n\r\n');
+
+vertOffset = 10; %um
+
+%{
+
+power_pSi_red_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45];
+n_pSi_red_11_06_18 = [1.397, 1.56634941308763, 1.611023, 1.71808702777778, 1.78968696801927, 1.81239064742194, 1.84430296363831, 1.86946775856018];
+
+power_pSi_green_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
+n_pSi_green_11_06_18 = [1.43, 1.59344971308594, 1.69143365, 1.81391895853271, 1.84121217718124, 1.87182605, 1.85827992773056, 1.87648817129745];
+
+power_pSi_blue_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
+n_pSi_blue_11_06_18 = [1.473, 1.633075, 1.746184, 1.836386, 1.872362, 1.893499, 1.888746, 1.9453375, 1.942789];
+
+power_pSiOxide_red_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_red_11_06_18 = [1.1372, 1.42547673898563, 1.62793815507257, 1.70515192478027, 1.7451611328125, 1.84207870178223, 1.8214272875];
+
+power_pSiOxide_green_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_green_11_06_18 = [1.1379, 1.4987684375, 1.63972100549769, 1.74415230407715, 1.74196637037037, 1.7779875, 1.8363219375];
+
+power_pSiOxide_blue_11_06_18 = [0, 55, 60, 70, 75, 80];
+n_pSi_blue_11_06_18 = [1.1388, 1.49646438461411, 1.66208066516168, 1.81183155119489, 1.86834652493527, 1.86834652493527, 1.87511646455702];
+
+%}
+
 power_pSi_blue_11_06_18 = [0, 15, 20, 25, 30, 35, 40, 45, 50];
 n_pSi_blue_11_06_18 = [1.473, 1.633075, 1.746184, 1.836386, 1.872362, 1.893499, 1.888746, 1.9453375, 1.942789];
 n = 1.9;
-currPower = interp1(n_pSiJ400_6_29_18, power_pSiJ400_6_29_18, n);
-t = 2; %arhode2 - Shoudln't R = t for a true sphere?
-R = 10; %R must be larger than t
-spacing = 0.05;
-minZ = 0;
-maxZ = t;
-vertOffset = 0;
-offset_iteration = 0;
+nMax = 1.942789;
+nMin = 1.473;
+currPower = interp1(n_pSi_blue_11_06_18, power_pSi_blue_11_06_18, n);
+t = 8;
+R = 8;
+
+sphere_radii_global = linspace(0,R,11);
+sphere_radii_global = sphere_radii_global(1:(end-1));
+
+spacing = 0.05; %um
 curr_angle = 0;
 angle_offset = 2*pi/7;
 
-for currZ = minZ:spacing:maxZ %Cycle through each plane in z
-    chdi = sqrt((8*R*currZ)-(4*currZ*currZ));
-    minY = -chdi/2;
-    maxY = chdi/2;
-    lineY = (minY+spacing/2+offset_iteration/4*spacing):spacing:(maxY-spacing/2+offset_iteration/4*spacing);
+minZ = -t;
+maxZ = t;
+
+offset_iteration = 0;
+
+for currZ = minZ:spacing:maxZ
+    
+    %calculate radii in this slice:
+    circle_radii_slice = sqrt( sphere_radii_global.^2 - repmat(currZ,size(sphere_radii_global)).^2 );
+    %find which spheres intersect this slice:
+    circle_index_slice = find( sphere_radii_global > abs(currZ));  %indices of the intersecting spheres
+    
+   
+    
+    
+    %Iterate through lines in this slice:
+    minY = -1*max(circle_radii_slice(circle_index_slice));
+    maxY = max(circle_radii_slice(circle_index_slice));
     for currY = (minY+spacing/2+offset_iteration/4*spacing):spacing:(maxY-spacing/2+offset_iteration/4*spacing)
-        line_intersections_x_pos = sqrt( lineY.^2 - repmat(currY,size(lineY)).^2 );
+        
+        %Calculate intersections with spheres in this slice:
+        %line_intersections_x = sqrt( circle_radii_slice.^2 - repmat(currY,size(circle_radii_slice)).^2)
+        line_intersections_x_pos = sqrt( sphere_radii_global.^2 - repmat(currY,size(sphere_radii_global)).^2 - repmat(currZ,size(sphere_radii_global)).^2 );
         line_intersections_x_neg = -1*line_intersections_x_pos;
         line_intersections_x = [fliplr(line_intersections_x_neg),line_intersections_x_pos];  %contains intersections for every sphere (some imaginary)
-        line_intersections_circles = find( abs(imag(line_intersections_x)) < 1e-10 );
-        for curr_intersection = 1:length(line_intersections_circles)
-            currX = line_intersections_x(line_intersections_circles(curr_intersection));
-            basePosXY = [currX;currY];
-            rotPosXY = rotateAroundZ(curr_angle,basePosXY);
-            currR = abs(sqrt((currX^2 + currY^2)));
-            %arhode2 - Here add currPower = f(sqrt(currR^2 + currZ^2))
-            fprintf(fid, '%f %f %f %f \r\n', rotPosXY(1), rotPosXY(2), currZ + vertOffset, currPower );
+        %find which circles intersect this slice:
+        line_intersections_spheres = find( abs(imag(line_intersections_x)) < 1e-10 );   %gets sphere-indices of non-imaginary intersections
+        
+        
+        for curr_intersection = 1:length(line_intersections_spheres)
+           currX = line_intersections_x(line_intersections_spheres(curr_intersection));
+           currSphere = line_intersections_spheres(curr_intersection);
+           basePosXY = [currX;currY];
+           rotPosXY = rotateAroundZ(curr_angle,basePosXY);
+           currR = abs(sqrt((currX^2 + currY^2 + currZ^2)));
+           sphere_n_local = sqrt( 2 - (currR/R)^2) * nMax/sqrt(2);
+           powers_n_local = interp1(n_pSi_blue_11_06_18, power_pSi_blue_11_06_18, sphere_n_local);
+           currPower = powers_n_local;
+           fprintf(fid, '%f %f %f %f \r\n', rotPosXY(1), rotPosXY(2), currZ + vertOffset, currPower );
+           
         end
         fprintf(fid, 'write \r\n \r\n');
+        
+       
+        
     end
     
+    
+    %Calculate offset position for this plane
     if offset_iteration == 0
         offset_iteration = 2;
     elseif offset_iteration == 1
@@ -71,49 +131,13 @@ for currZ = minZ:spacing:maxZ %Cycle through each plane in z
     
 end
 
-%Flip 
-%arhode2 - Pretty sure from here to 'closed' is unnecessary for my purposes. 
-vertOffset = maxZ;
 
-for currZ = minZ:spacing:maxZ %Cycle through each plane in z
-    tt = t-currZ;
-    chdi = sqrt((8*R*tt)-(4*tt*tt));
-    minY = -chdi/2;
-    maxY = chdi/2;
-    lineY = (minY+spacing/2+offset_iteration/4*spacing):spacing:(maxY-spacing/2+offset_iteration/4*spacing);
-    for currY = (minY+spacing/2+offset_iteration/4*spacing):spacing:(maxY-spacing/2+offset_iteration/4*spacing)
-        line_intersections_x_pos = sqrt( lineY.^2 - repmat(currY,size(lineY)).^2 );
-        line_intersections_x_neg = -1*line_intersections_x_pos;
-        line_intersections_x = [fliplr(line_intersections_x_neg),line_intersections_x_pos];  %contains intersections for every sphere (some imaginary)
-        line_intersections_circles = find( abs(imag(line_intersections_x)) < 1e-10 );
-        for curr_intersection = 1:length(line_intersections_circles)
-            currX = line_intersections_x(line_intersections_circles(curr_intersection));
-            basePosXY = [currX;currY];
-            rotPosXY = rotateAroundZ(curr_angle,basePosXY);
-            currR = abs(sqrt((currX^2 + currY^2)));
-            fprintf(fid, '%f %f %f %f \r\n', rotPosXY(1), rotPosXY(2), currZ + vertOffset, currPower );
-        end
-        fprintf(fid, 'write \r\n \r\n');
-    end
-    
-    if offset_iteration == 0
-        offset_iteration = 2;
-    elseif offset_iteration == 1
-        offset_iteration = 0;
-    elseif offset_iteration == 2
-        offset_iteration = 3;
-    elseif offset_iteration == 3
-        offset_iteration = 1;
-    end
-    
-    %change rotation:
-    curr_angle = curr_angle + angle_offset;
-    
-end
 
 closed = fclose(fid);
 close = fclose('all');
+
 end
+
 
 function outPosXY = rotateAroundZ(theta,basePosXY)
 R = [cos(theta),sin(theta); -sin(theta),cos(theta)];
