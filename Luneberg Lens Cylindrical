@@ -1,0 +1,100 @@
+function generateScript_LunebergCylindrical
+filename = 'Luneberg_Cylinder1.gwl';
+fid = fopen(filename,'w')
+
+%NEED BEGINNING/STANDARD PARAMETERS
+fprintf(fid,'TextFontSize 5\r\n');
+
+fprintf(fid,'ContinuousMode\r\n');
+fprintf(fid,'PowerScaling 1.0\r\n');
+fprintf(fid,'GalvoScanMode\r\n');
+fprintf(fid,'ScanSpeed 40000\r\n');
+
+fprintf(fid,'StageGotoX 0\r\n');
+fprintf(fid,'StageGotoY 0\r\n');
+
+fprintf(fid,'FindInterfaceAt 0.5\r\n');
+fprintf(fid,'TextFontSize 10\r\n');
+fprintf(fid,'TextPositionX -60\r\n');
+fprintf(fid,'TextPositionY 15\r\n');
+fprintf(fid,'TextPositionZ 2\r\n');
+fprintf(fid,'WriteText "Written: 4-7-18"\r\n');
+
+fprintf(fid,'FindInterfaceAt 20\r\n\r\n');
+power_pSiJ350_2um_8_30_17 = [0,12,16,20,28,32,36,40];
+n_pSiJ350_2um_8_30_17 = [1.2329,1.2918,1.3349,1.3929,1.4139,1.4371,1.4632,1.4635];
+
+nMin = 1.2329;
+nMax = 1.4635;
+
+R_ideal = 10;  %radius for a perfect Luneburg
+R_limit = sqrt(2-(nMin*sqrt(2)/nMax)^2) * R_ideal;
+sphere_radii_global = linspace(0,R_limit,11);
+sphere_radii_global = sphere_radii_global(1:(end-1));
+height = 6; %um
+% MAKE CYLINDER:
+
+
+%Cycle through each plane
+spacing = 0.05 %um
+h = height;
+minZ = 0; %Start at zero
+maxZ = h;
+offset_iteration = 0;
+curr_angle = 0;
+angle_offset = 2*pi/7;
+vertOffset = 0;
+for currZ = minZ:spacing:maxZ %Cycle through each plane in z
+    circle_radii_slice = max(sphere_radii_global);
+    %Iterate through lines in this slice:
+    minY = -1*max(sphere_radii_global);
+    maxY = max(sphere_radii_global);
+        for currY = (minY+spacing/2+offset_iteration/4*spacing):spacing:(maxY-spacing/2+offset_iteration/4*spacing)
+        
+        %Calculate intersections with spheres in this slice:
+        %line_intersections_x = sqrt( circle_radii_slice.^2 - repmat(currY,size(circle_radii_slice)).^2)
+        line_intersections_x_pos = sqrt( sphere_radii_global.^2 - repmat(currY,size(sphere_radii_global)).^2 );
+        line_intersections_x_neg = -1*line_intersections_x_pos;
+        line_intersections_x = [fliplr(line_intersections_x_neg),line_intersections_x_pos];  %contains intersections for every sphere (some imaginary) 
+        line_intersections_circles = find( abs(imag(line_intersections_x)) < 1e-10 );
+        for curr_intersection = 1:length(line_intersections_circles)
+           currX = line_intersections_x(line_intersections_circles(curr_intersection));
+           basePosXY = [currX;currY];
+           rotPosXY = rotateAroundZ(curr_angle,basePosXY);
+           currR = abs(sqrt((currX^2 + currY^2)));
+           sphere_n_local = sqrt( 2 - (currR/R_ideal)^2) * nMax/sqrt(2);
+           powers_n_local = interp1(n_pSiJ350_2um_8_30_17, power_pSiJ350_2um_8_30_17, sphere_n_local);
+           currPower = powers_n_local;
+           fprintf(fid, '%f %f %f %f \r\n', rotPosXY(1), rotPosXY(2), currZ + vertOffset, currPower );
+           
+        end
+        fprintf(fid, 'write \r\n \r\n');
+        
+       
+        
+    end
+    
+    
+    %Calculate offset position for this plane
+    if offset_iteration == 0
+        offset_iteration = 2;
+    elseif offset_iteration == 1
+        offset_iteration = 0;
+    elseif offset_iteration == 2
+        offset_iteration = 3;
+    elseif offset_iteration == 3
+        offset_iteration = 1;
+    end
+    
+    %change rotation:
+    curr_angle = curr_angle + angle_offset;
+    
+end
+closed = fclose(fid);
+close = fclose('all');
+end 
+
+function outPosXY = rotateAroundZ(theta,basePosXY)
+R = [cos(theta),sin(theta); -sin(theta),cos(theta)];
+outPosXY = R*basePosXY;
+end
