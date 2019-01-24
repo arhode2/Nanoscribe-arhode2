@@ -1,0 +1,57 @@
+function generateScript_Frustrum()
+filename = 'Frustrum.gwl';
+fid = fopen(filename,'w');
+
+%NEED BEGINNING/STANDARD PARAMETERS
+fprintf(fid,'TextFontSize 5\r\n');
+
+fprintf(fid,'ContinuousMode\r\n');
+fprintf(fid,'PowerScaling 1.0\r\n');
+fprintf(fid,'GalvoScanMode\r\n');
+fprintf(fid,'ScanSpeed 40000\r\n');
+
+fprintf(fid,'StageGotoX 0\r\n');
+fprintf(fid,'StageGotoY 0\r\n');
+
+fprintf(fid,'FindInterfaceAt 0.5\r\n');
+fprintf(fid,'TextFontSize 10\r\n');
+fprintf(fid,'TextPositionX -60\r\n');
+fprintf(fid,'TextPositionY 15\r\n');
+fprintf(fid,'TextPositionZ 2\r\n');
+
+fprintf(fid,'FindInterfaceAt 20\r\n\r\n');
+
+%Define laser power
+lpBot = 60;
+lpTop = 15;
+lp = lpBot;
+
+%GeneralVaribles
+h = 10;
+spacing = 0.10;
+rThin = 1;
+rThick = 5;
+
+%General variables for
+vertOffset = 0;
+zMin = 0;
+zMax = h;
+
+%Make the frustrum
+for z = zMin : spacing : zMax
+    r = rThick * ((h - z) / h) + rThin;
+    lp = lpBot * ((h - z) / h) + lpTop;
+    for y = -r : spacing : r
+        for x = sqrt(r^2 - y^2)
+            fprintf(fid, '%f %f %f %f \r\n', -x, y, z + vertOffset, lp);
+            fprintf(fid, '%f %f %f %f \r\n', x, y, z + vertOffset, lp);
+            fprintf(fid, 'write \r\n \r\n');
+        end
+    end
+end
+closed = fclose(fid);
+close = fclose('all');
+end
+
+
+
