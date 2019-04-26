@@ -1,0 +1,99 @@
+function generateScript_torusZParGRIN(rInput, RInput)
+%r = radius of the tube.
+%R = distance from center of torus to center of tube.
+
+
+filename = 'torusZ.gwl';
+fid = fopen(filename,'w');
+fprintf(fid,'TextFontSize 5\r\n');
+
+fprintf(fid,'ContinuousMode\r\n');
+fprintf(fid,'PowerScaling 1.0\r\n');
+fprintf(fid,'GalvoScanMode\r\n');
+fprintf(fid,'ScanSpeed 40000\r\n');
+
+fprintf(fid,'StageGotoX 0\r\n');
+fprintf(fid,'StageGotoY 0\r\n');
+
+fprintf(fid,'FindInterfaceAt 0.5\r\n');
+fprintf(fid,'TextFontSize 10\r\n');
+fprintf(fid,'TextPositionX -60\r\n');
+fprintf(fid,'TextPositionY 15\r\n');
+fprintf(fid,'TextPositionZ 2\r\n');
+
+%Define laser power
+power_pSiJ400_6_29_18 = [0,10,15,20,25,30,35,40,45,50,55,60,65,70,75];
+n_pSiJ400_6_29_18 = [1.4263,1.472,1.536,1.645,1.675,1.71,1.863,1.945,1.95,1.96,1.975,1.987,1.98,2.05,1.99];
+n = 1.863;
+lp = interp1(n_pSiJ400_6_29_18, power_pSiJ400_6_29_18, n); %placeholder
+nMax = max(n_pSiJ400_6_29_18);
+nMin = min(n_pSiJ400_6_29_18);
+delN = nMax - nMin;
+
+%General Variables
+spacing = 0.1;
+pointsSorted = [];
+pointsMaster = [];
+
+%generate all points in a shell method attached to their lp.
+for r = 0 : spacing : rInput
+    torusPoints(r);
+end
+
+pointsMasterSorted = sortrows(pointsMaster, [3 2]);
+disp(pointsMasterSorted);
+
+pointsSortedSize = size(pointsMasterSorted);
+for i = 1 : 1 : pointsSortedSize(1)
+    x0 = pointsMasterSorted(i, 1);
+    y0 = pointsMasterSorted(i, 2);
+    z0 = pointsMasterSorted(i, 3);
+    lp0 = pointsMasterSorted(i, 4);
+    %x0, y0, z0, lp0 define a GRIN point
+    %points are printed point-wise with their appropriate LP.
+    fprintf(fid, '%f %f %f %f \r\n', x0, y0, z0, lp0);
+    fprintf(fid, 'write \r\n \r\n');
+end
+fclose('all');
+
+
+    function torusPoints(r)
+        %generates the points for the surface of the torus located in the
+        %first octant (eigth of the torus overall) using parametric
+        %equations for a torus.
+        points = [];
+        pointsSorted = [];
+        du = spacing / RInput;
+        dv = spacing / r;
+        %u is like what phi is in spherical. u = 0 is on the y-axis.
+        %v is like theta in cylindrical, but centered at the center of the
+        %tube for each given u.
+        %
+        
+        %u determines the quadrant of the yz coordinate plane that the
+        %point will be in.
+        %QUADRANTS OF YZ-PLANE AS DETERMINED BY u.
+        %0 < u < pi / 2 : first (top right)
+        %pi / 2 < u < pi : fourth (bottom right)
+        %pi < u < 3pi / 2 : third (bottom left)
+        %3pi / 2 < u < 2pi : second (top left)
+        
+        %0 < v < pi restricts you to the positive side of the yz plane(we write
+        %from that point to the other side.
+        %
+        for u = 0 : du : (pi / 2) %pi / 2 to give quarter torus
+            for v = 0 : dv : pi
+                x = rInput * sin(v);
+                y = (RInput + (r * cos(v))) * sin(u); 
+                z = (RInput + (r * cos(v))) * cos(u);
+                alpha = delN / (2 * RInput);
+                nGrin = nMax - (alpha * abs(r / rInput));
+                lp = interp1(n_pSiJ400_6_29_18, power_pSiJ400_6_29_18, nGrin);
+                point = [x y z lp];
+                points = [points;point];
+            end
+        end
+        pointsSorted = sortrows(points, [3 2]);
+        pointsMaster = [pointsMaster; pointsSorted];
+    end
+end
